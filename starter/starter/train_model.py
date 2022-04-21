@@ -1,14 +1,18 @@
 # Script to train machine learning model.
 
+import imp
 from nis import cat
 from unicodedata import category
 from sklearn.model_selection import train_test_split
 # Add the necessary imports for the starter code.
 import pandas as pd
 import numpy as np
+import os
+import joblib
 from sklearn.preprocessing import OneHotEncoder, label_binarize, LabelBinarizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import cross_val_score
+from sklearn.metrics import f1_score
+
 
 # Add code to load in the data.
 data = pd.read_csv("../data/modified_v1_census.csv")
@@ -57,4 +61,23 @@ X_test, y_test, encoder, lb = process_data(
     test, categorical_features=cat_features, label="salary", training=False
 )
 # Train and save a model.
+def train_model(X_train, y_train, X_test, y_test):
+    model = LogisticRegression(max_iter=1000)
+    model.fit(X_train, y_train)
+    scores = model.predict_proba(X_test)
+    pred = model.predict(X_test)
+    f1 = f1_score(y_test, pred)
+    print(f"F1 score: {f1:.4f}")
+    return model
 
+def save_model(model, path):
+    if os.path.exists(path):
+        joblib.dump(model, path)
+    else:
+        os.makedirs(path)
+        joblib.dump(model, path)
+
+model = train_model(X_train, y_train, X_test, y_test)
+path = "../model/model.joblib"
+
+save_model(model, path)
